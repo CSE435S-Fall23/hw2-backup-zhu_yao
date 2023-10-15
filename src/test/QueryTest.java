@@ -39,7 +39,7 @@ public class QueryTest {
 	}
 	
 	@Test
-	public void testSimple() {
+	public void testSimple() throws IOException {
 		Query q = new Query("SELECT a1, a2 FROM A");
 		Relation r = q.execute();
 		
@@ -48,7 +48,7 @@ public class QueryTest {
 	}
 	
 	@Test
-	public void testSelect() {
+	public void testSelect() throws IOException {
 		Query q = new Query("SELECT a1, a2 FROM A WHERE a1 = 530");
 		Relation r = q.execute();
 		
@@ -57,7 +57,7 @@ public class QueryTest {
 	}
 	
 	@Test
-	public void testProject() {
+	public void testProject() throws IOException {
 		Query q = new Query("SELECT a2 FROM A");
 		Relation r = q.execute();
 		
@@ -67,7 +67,7 @@ public class QueryTest {
 	}
 	
 	@Test
-	public void testJoin() {
+	public void testJoin() throws IOException {
 		Query q = new Query("SELECT c1, c2, a1, a2 FROM test JOIN A ON test.c1 = a.a1");
 		Relation r = q.execute();
 		
@@ -76,7 +76,7 @@ public class QueryTest {
 	}
 	
 	@Test
-	public void testAggregate() {
+	public void testAggregate() throws IOException {
 		Query q = new Query("SELECT SUM(a2) FROM A");
 		Relation r = q.execute();
 		
@@ -86,7 +86,7 @@ public class QueryTest {
 	}
 	
 	@Test
-	public void testGroupBy() {
+	public void testGroupBy() throws IOException {
 		Query q = new Query("SELECT a1, SUM(a2) FROM A GROUP BY a1");
 		Relation r = q.execute();
 		
@@ -94,7 +94,7 @@ public class QueryTest {
 	}
 	
 	@Test
-	public void testSelectAll() {
+	public void testSelectAll() throws IOException {
 		Query q = new Query("SELECT * FROM A");
 		Relation r = q.execute();
 		

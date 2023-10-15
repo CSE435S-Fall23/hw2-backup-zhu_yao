@@ -47,7 +47,7 @@ public class HeapFileTest {
 	}
 
 	@Test
-	public void testGetters() {
+	public void testGetters() throws IOException {
 		assertTrue(hf.getTupleDesc().equals(td));
 
 		assertTrue(hf.getNumPages() == 1);
@@ -55,7 +55,7 @@ public class HeapFileTest {
 	}
 
 	@Test
-	public void testWrite() {
+	public void testWrite() throws IOException {
 		Tuple t = new Tuple(td);
 		t.setField(0, new IntField(new byte[] {0, 0, 0, (byte)131}));
 		byte[] s = new byte[129];
@@ -75,7 +75,7 @@ public class HeapFileTest {
 	}
 
 	@Test
-	public void testRemove() {
+	public void testRemove() throws IOException {
 		Tuple t = new Tuple(td);
 		t.setField(0, new IntField(new byte[] {0, 0, (byte)2, (byte)18}));
 		byte[] s = new byte[129];

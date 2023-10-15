@@ -22,20 +22,20 @@ public class StringField implements Field {
      */
     public StringField(String s) {
 
-        if (s.length() > maxSize)
-            value = s.substring(0,maxSize);
-        else
-            value = s;
+    if (s.length() > maxSize)
+        value = s.substring(0,maxSize);
+    else
+        value = s;
     }
-
+    
     public StringField(byte[] b) {
-        int len = b[0];
-        char[] s = new char[len];
-        for(int j = 0; j < len; j++) {
-            s[j] = (char)b[j+1];
-        }
-        String s2 = new String(s);
-        value = s2;
+		int len = b[0];
+		char[] s = new char[len];
+		for(int j = 0; j < len; j++) {
+			s[j] = (char)b[j+1];
+		}
+		String s2 = new String(s);
+		value = s2;
     }
 
     public String toString() {
@@ -51,21 +51,21 @@ public class StringField implements Field {
     }
 
     /** Write this string to dos.  Always writes maxSize + 4 bytes to the
-     passed in dos.  First four bytes are string length, next bytes are
-     string, with remainder padded with 0 to maxSize.
-     @param dos Where the string is written
-     */
+    passed in dos.  First four bytes are string length, next bytes are
+    string, with remainder padded with 0 to maxSize.
+    @param dos Where the string is written
+    */
     public void serialize(DataOutputStream dos) throws IOException {
-        String s = value;
-        int overflow = maxSize - s.length();
-        if (overflow < 0) {
-            String news = s.substring(0,maxSize);
-            s  = news;
-        }
-        dos.writeInt(s.length());
-        dos.writeBytes(s);
-        while (overflow-- > 0)
-            dos.write((byte)0);
+    String s = value;
+    int overflow = maxSize - s.length();
+    if (overflow < 0) {
+        String news = s.substring(0,maxSize);
+        s  = news;
+    }
+    dos.writeInt(s.length());
+    dos.writeBytes(s);
+    while (overflow-- > 0)
+        dos.write((byte)0);
     }
 
     /**
@@ -81,23 +81,23 @@ public class StringField implements Field {
         int cmpVal = value.compareTo(iVal.value);
 
         switch (op) {
-            case EQ:
-                return cmpVal == 0;
+        case EQ:
+            return cmpVal == 0;
 
-            case NOTEQ:
-                return cmpVal != 0;
+        case NOTEQ:
+            return cmpVal != 0;
 
-            case GT:
-                return cmpVal > 0;
+        case GT:
+            return cmpVal > 0;
 
-            case GTE:
-                return cmpVal >= 0;
+        case GTE:
+            return cmpVal >= 0;
 
-            case LT:
-                return cmpVal < 0;
+        case LT:
+            return cmpVal < 0;
 
-            case LTE:
-                return cmpVal <= 0;
+        case LTE:
+            return cmpVal <= 0;
         }
 
         return false;
@@ -105,17 +105,17 @@ public class StringField implements Field {
     /**
      * @return the Type for this Field
      */
-    public Type getType() {
-
-        return Type.STRING;
-    }
-
-    public byte[] toByteArray() {
-        byte[] result = new byte[129];
-        result[0] = (byte)value.length();
-        for(int i = 0; i < value.length(); i++) {
-            result[i + 1] = (byte)value.charAt(i);
-        }
-        return result;
-    }
+	public Type getType() {
+		
+		return Type.STRING;
+	}
+	
+	public byte[] toByteArray() {
+		byte[] result = new byte[129];
+		result[0] = (byte)value.length();
+		for(int i = 0; i < value.length(); i++) {
+			result[i + 1] = (byte)value.charAt(i);
+		}
+		return result;
+	}
 }

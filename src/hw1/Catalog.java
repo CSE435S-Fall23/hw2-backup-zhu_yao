@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
-
+import java.util.HashMap;
 /**
  * The Catalog keeps track of all available tables in the database and their
  * associated schemas.
@@ -20,10 +20,46 @@ public class Catalog {
      * Constructor.
      * Creates a new, empty catalog.
      */
+	private HashMap<String, TableInfo> tablesName;
+	private HashMap<Integer, TableInfo> tablesID;
+	
     public Catalog() {
-    	//your code here
+    	this.tablesName = new HashMap<>();
+    	this.tablesID = new HashMap<>();
     }
 
+    private class TableInfo{
+    	
+    	private String name;
+    	private HeapFile file;
+        private String pkeyField;
+        
+        
+        public TableInfo(String name, HeapFile file, String pkeyField) {
+            this.name = name;
+            this.file = file;
+            this.pkeyField = pkeyField;
+            
+        }
+        
+        public String getName() {
+        	return this.name;
+        }
+        
+        public HeapFile getFile() {
+            return this.file;
+        }
+
+        public String getPkeyField() {
+            return this.pkeyField;
+        }
+        
+        public int getTableId() {
+        	return this.file.getId();
+        }
+        
+        
+    }
     /**
      * Add a new table to the catalog.
      * This table's contents are stored in the specified HeapFile.
@@ -33,7 +69,9 @@ public class Catalog {
      * @param pkeyField the name of the primary key field
      */
     public void addTable(HeapFile file, String name, String pkeyField) {
-    	//your code here
+    	TableInfo tableInfo = new TableInfo(name, file, pkeyField);
+        tablesName.put(name, tableInfo);
+        tablesID.put(file.getId(), tableInfo);
     }
 
     public void addTable(HeapFile file, String name) {
@@ -45,8 +83,7 @@ public class Catalog {
      * @throws NoSuchElementException if the table doesn't exist
      */
     public int getTableId(String name) {
-    	//your code here
-    	return 0;
+    	return this.tablesName.get(name).getTableId();
     }
 
     /**
@@ -55,8 +92,7 @@ public class Catalog {
      *     function passed to addTable
      */
     public TupleDesc getTupleDesc(int tableid) throws NoSuchElementException {
-    	//your code here
-    	return null;
+    	return this.tablesID.get(tableid).getFile().getTupleDesc();
     }
 
     /**
@@ -66,28 +102,25 @@ public class Catalog {
      *     function passed to addTable
      */
     public HeapFile getDbFile(int tableid) throws NoSuchElementException {
-    	//your code here
-    	return null;
+    	return this.tablesID.get(tableid).getFile();
     }
 
     /** Delete all tables from the catalog */
     public void clear() {
-    	//your code here
+    	this.tablesID.clear();
+    	this.tablesName.clear();
     }
 
     public String getPrimaryKey(int tableid) {
-    	//your code here
-    	return null;
+    	return this.tablesID.get(tableid).getPkeyField();
     }
 
     public Iterator<Integer> tableIdIterator() {
-    	//your code here
-    	return null;
+    	return this.tablesID.keySet().iterator();
     }
 
     public String getTableName(int id) {
-    	//your code here
-    	return null;
+    	return this.tablesID.get(id).getName();
     }
     
     /**

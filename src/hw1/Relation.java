@@ -14,7 +14,8 @@ public class Relation {
 	private TupleDesc td;
 	
 	public Relation(ArrayList<Tuple> l, TupleDesc td) {
-		//your code here
+		this.tuples = l;
+		this.td = td;
 	}
 	
 	/**
@@ -25,8 +26,16 @@ public class Relation {
 	 * @return
 	 */
 	public Relation select(int field, RelationalOperator op, Field operand) {
-		//your code here
-		return null;
+		  ArrayList<Tuple> tuples_select = new ArrayList<>();
+		  
+		  for(int i = 0; i < tuples.size(); ++i) {
+		   Tuple temp_tuple = tuples.get(i);
+		   if(temp_tuple.getField(field).compare(op, operand)) {
+		    tuples_select.add(temp_tuple);
+		   }
+		  }
+		 
+		  return new Relation(tuples_select, this.td);
 	}
 	
 	/**
@@ -36,8 +45,16 @@ public class Relation {
 	 * @return
 	 */
 	public Relation rename(ArrayList<Integer> fields, ArrayList<String> names) {
-		//your code here
-		return null;
+		  Type[] type_temp = this.td.getAllTypes();
+		  String[] field_temp = this.td.getAllFields();
+		  for(int i=0; i < fields.size(); ++i) {
+			  int field = fields.get(i);
+			  if(td.getFieldName(field)!=names.get(i) && names.get(i)!=null && fields.get(i)!= null) {
+				  field_temp[i] = names.get(i);
+			  }
+		  }
+		  TupleDesc td_new = new TupleDesc(type_temp, field_temp);
+		  return new Relation(tuples,td_new);
 	}
 	
 	/**
@@ -45,10 +62,21 @@ public class Relation {
 	 * @param fields a list of field numbers (refer to TupleDesc) that should be in the result
 	 * @return
 	 */
+	
 	public Relation project(ArrayList<Integer> fields) {
-		//your code here
-		return null;
-	}
+		ArrayList<Tuple> projectedTuples = new ArrayList<>();
+	    
+		for(Tuple tuple: this.tuples) {
+			Tuple newTuple = new Tuple(td.project(fields));
+			Field[] selectedFields = tuple.getProjectedFields(fields);
+			for(int i = 0; i < selectedFields.length; i++) {
+				newTuple.setField(i, selectedFields[i]);
+			}
+			projectedTuples.add(newTuple);
+			}
+		return new Relation(projectedTuples, td.project(fields));
+
+		}
 	
 	/**
 	 * This method performs a join between this relation and a second relation.
@@ -60,9 +88,48 @@ public class Relation {
 	 * @return
 	 */
 	public Relation join(Relation other, int field1, int field2) {
-		//your code here
-		return null;
+		ArrayList<Tuple> joinedTuples = new ArrayList<>();
+		for (Tuple tuple1 : this.tuples) {
+	        for (Tuple tuple2 : other.tuples) {
+	            if (tuple1.getField(field1).equals(tuple2.getField(field2))) {
+	                Tuple newTuple = concatenateTuples(tuple1, tuple2);
+	                joinedTuples.add(newTuple);
+	            }
+	        }
+	    }
+	    TupleDesc newDesc = concatenateTupleDescs(this.td, other.td);
+	    System.out.print(newDesc.getSize());
+		return new Relation(joinedTuples, newDesc);
 	}
+	
+	private TupleDesc concatenateTupleDescs(TupleDesc td1, TupleDesc td2) {
+	    Type[] concatenatedTypes = new Type[td1.numFields() + td2.numFields()];
+	    String[] concatenatedFieldNames = new String[td1.numFields() + td2.numFields()];
+	    
+	    for(int i = 0; i < td1.numFields(); i++) {
+	    	concatenatedTypes[i] =  td1.getType(i);
+	    	concatenatedFieldNames[i] = td1.getFieldName(i);
+	    }
+	    
+	    for(int i = 0; i < td2.numFields(); i++) {
+	    	concatenatedTypes[td1.numFields()+i] =  td2.getType(i);
+	    	concatenatedFieldNames[td1.numFields()+i] = td2.getFieldName(i);
+	    }
+	    
+	    return new TupleDesc(concatenatedTypes, concatenatedFieldNames);
+	}
+	
+	private Tuple concatenateTuples(Tuple t1, Tuple t2) {
+	    Tuple newTuple = new Tuple(concatenateTupleDescs(t1.getDesc(),t2.getDesc()));
+	    for(int i = 0; i < t1.getDesc().numFields(); i++) {
+	    	newTuple.setField(i, t1.getField(i));
+	    }
+	    for(int i = 0; i < t2.getDesc().numFields(); i++) {
+	    	newTuple.setField(t1.getDesc().numFields()+i, t2.getField(i));
+	    }
+	    return newTuple;
+	}
+	
 	
 	/**
 	 * Performs an aggregation operation on a relation. See the lab write up for details.
@@ -76,13 +143,11 @@ public class Relation {
 	}
 	
 	public TupleDesc getDesc() {
-		//your code here
-		return null;
+		return this.td;
 	}
 	
 	public ArrayList<Tuple> getTuples() {
-		//your code here
-		return null;
+		return this.tuples;
 	}
 	
 	/**

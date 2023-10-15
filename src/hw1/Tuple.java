@@ -1,6 +1,7 @@
 package hw1;
 
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -15,13 +16,27 @@ public class Tuple {
 	 * Creates a new tuple with the given description
 	 * @param t the schema for this tuple
 	 */
+	
+	/**
+	 * Specify the variables for the Tuple 
+	 * @param tupleDesc the schema for the instance
+	 * @param fields array that contains the field information
+	 * @param pID stores the pageID of the tuple
+	 * @param sID stores the slotID of the tuple
+	 */
+	
+	private Field[] fields;
+	private TupleDesc tupleDesc;
+	private int pID;
+	private int sID;
+	
 	public Tuple(TupleDesc t) {
-		//your code here
+		this.tupleDesc = t;
+		this.fields = new Field[t.numFields()];
 	}
 	
 	public TupleDesc getDesc() {
-		//your code here
-		return null;
+		return this.tupleDesc;
 	}
 	
 	/**
@@ -29,12 +44,12 @@ public class Tuple {
 	 * @return the page id of this tuple
 	 */
 	public int getPid() {
-		//your code here
-		return 0;
+
+		return this.pID;
 	}
 
 	public void setPid(int pid) {
-		//your code here
+		this.pID = pid;
 	}
 
 	/**
@@ -42,16 +57,16 @@ public class Tuple {
 	 * @return the slot where this tuple is stored
 	 */
 	public int getId() {
-		//your code here
-		return 0;
+		
+		return this.sID;
 	}
 
 	public void setId(int id) {
-		//your code here
+		this.sID = id;
 	}
 	
 	public void setDesc(TupleDesc td) {
-		//your code here;
+		this.tupleDesc = td;
 	}
 	
 	/**
@@ -60,12 +75,28 @@ public class Tuple {
 	 * @param v the data
 	 */
 	public void setField(int i, Field v) {
-		//your code here
+		fields[i] = v;
+	}
+	
+	public int getFieldLen() {
+		return this.fields.length;
+	}
+	
+	public Field[] getAllField() {
+		return this.fields;
 	}
 	
 	public Field getField(int i) {
-		//your code here
-		return null;
+		
+		return fields[i];
+	}
+	
+	public Field[] getProjectedFields(ArrayList<Integer> fieldIndices) {
+	    Field[] projectedFields = new Field[fieldIndices.size()];
+	    for (int i = 0; i < fieldIndices.size(); i++) {
+	        projectedFields[i] = this.fields[fieldIndices.get(i)];
+	    }
+	    return projectedFields;
 	}
 	
 	/**
@@ -74,8 +105,12 @@ public class Tuple {
 	 * the String columns to readable text).
 	 */
 	public String toString() {
-		//your code here
-		return "";
+		StringBuilder stringRep = new StringBuilder();
+		for (int i = 0; i < fields.length; ++i) {
+			stringRep.append(fields[i].toString());
+			stringRep.append(" ");
+		}
+		return stringRep.toString();
 	}
 }
 	

@@ -55,7 +55,7 @@ public class RelationTest {
 	}
 	
 	@Test
-	public void testSelect() {
+	public void testSelect() throws IOException {
 		Relation ar = new Relation(ahf.getAllTuples(), atd);
 		ar = ar.select(0, RelationalOperator.EQ, new IntField(530));
 		
@@ -64,7 +64,7 @@ public class RelationTest {
 	}
 	
 	@Test
-	public void testProject() {
+	public void testProject() throws IOException {
 		Relation ar = new Relation(ahf.getAllTuples(), atd);
 		ArrayList<Integer> c = new ArrayList<Integer>();
 		c.add(1);
@@ -75,9 +75,11 @@ public class RelationTest {
 	}
 	
 	@Test
-	public void testJoin() {
+	public void testJoin() throws IOException {
 		Relation tr = new Relation(testhf.getAllTuples(), testtd);
+		System.out.println(tr.getDesc().getSize());
 		Relation ar = new Relation(ahf.getAllTuples(), atd);
+		System.out.println(ar.getDesc().getSize());
 		tr = tr.join(ar, 0, 0);
 		
 		assert(tr.getTuples().size() == 5);
@@ -85,7 +87,7 @@ public class RelationTest {
 	}
 	
 	@Test
-	public void testRename() {
+	public void testRename() throws IOException {
 		Relation ar = new Relation(ahf.getAllTuples(), atd);
 		
 		ArrayList<Integer> f = new ArrayList<Integer>();
@@ -104,7 +106,7 @@ public class RelationTest {
 	}
 	
 	@Test
-	public void testAggregate() {
+	public void testAggregate() throws IOException {
 		Relation ar = new Relation(ahf.getAllTuples(), atd);
 		ArrayList<Integer> c = new ArrayList<Integer>();
 		c.add(1);
@@ -117,10 +119,9 @@ public class RelationTest {
 	}
 	
 	@Test
-	public void testGroupBy() {
+	public void testGroupBy() throws IOException {
 		Relation ar = new Relation(ahf.getAllTuples(), atd);
 		ar = ar.aggregate(AggregateOperator.SUM, true);
-		
 		assertTrue(ar.getTuples().size() == 4);
 	}
 
