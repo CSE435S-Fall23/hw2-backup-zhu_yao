@@ -138,8 +138,13 @@ public class Relation {
 	 * @return
 	 */
 	public Relation aggregate(AggregateOperator op, boolean groupBy) {
-		//your code here
-		return null;
+		Aggregator agg = new Aggregator(op, groupBy, this.td);
+		for(Tuple t: this.tuples) {
+			agg.merge(t);
+		}
+		ArrayList<Tuple> results = agg.getResults();
+		Relation results_new = new Relation(results, results.get(0).getDesc());
+		return results_new;
 	}
 	
 	public TupleDesc getDesc() {
