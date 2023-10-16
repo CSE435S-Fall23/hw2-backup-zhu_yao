@@ -47,14 +47,19 @@ public class Relation {
 	public Relation rename(ArrayList<Integer> fields, ArrayList<String> names) {
 		  Type[] type_temp = this.td.getAllTypes();
 		  String[] field_temp = this.td.getAllFields();
-		  for(int i=0; i < fields.size(); ++i) {
-			  int field = fields.get(i);
-			  if(td.getFieldName(field)!=names.get(i) && names.get(i)!=null && fields.get(i)!= null) {
-				  field_temp[i] = names.get(i);
-			  }
-		  }
-		  TupleDesc td_new = new TupleDesc(type_temp, field_temp);
-		  return new Relation(tuples,td_new);
+		 for (int i = 0; i < this.td.numFields(); i++) {
+			 field_temp[i] = this.td.getFieldName(i);
+			 type_temp[i] = this.td.getType(i);
+		 }
+		 
+		 for (int i = 0; i < fields.size(); i++) {
+			 if(names.get(i).equals("")) {
+				 continue;
+			 }
+			 field_temp[fields.get(i)] = names.get(i);
+		 }
+		 TupleDesc td_new = new TupleDesc(type_temp, field_temp);
+		 return new Relation(this.tuples, td_new);
 	}
 	
 	/**
@@ -160,7 +165,11 @@ public class Relation {
 	 * first contain the TupleDesc, followed by each of the tuples in this relation
 	 */
 	public String toString() {
-		//your code here
-		return null;
+		String result = "";
+		result += this.getDesc();
+		for(Tuple tuple: this.getTuples()) {
+			result += " " + tuple.toString();
+		}
+		return result;
 	}
 }

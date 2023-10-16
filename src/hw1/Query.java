@@ -6,6 +6,7 @@ import java.util.List;
 
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.ExpressionVisitor;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.parser.*;
 import net.sf.jsqlparser.schema.Column;
@@ -16,6 +17,7 @@ import net.sf.jsqlparser.statement.select.Join;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectBody;
+import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SelectItem;
 
 public class Query {
@@ -42,12 +44,25 @@ public class Query {
 		FromItem fromItem = sb.getFromItem();
 		Catalog c = Database.getCatalog();
 		
-	    String tableName = ((Table) fromItem).getName();  // Assuming it's always a Table for simplicity
+	    String tableName = ((Table) fromItem).getName();  
 	    HeapFile heapFile = c.getDbFile(c.getTableId(tableName));
 	    TupleDesc tupleDesc = c.getTupleDesc(c.getTableId(tableName));
 	    ArrayList<Tuple> mainTableTuples = heapFile.getAllTuples();
 	    Relation currentRelation = new Relation(mainTableTuples, tupleDesc);
 	    
+	    // AS in FROM
+	    if(fromItem.getAlias() != null) {
+	    	String tableAlias = fromItem.getAlias().getName();
+	        
+	    	c.addTable(heapFile, tableAlias, c.getPrimaryKey(c.getTableId(tableName)));
+	        
+	        // Fetch the table using its alias
+	        heapFile = c.getDbFile(c.getTableId(tableAlias));
+	        tupleDesc = c.getTupleDesc(c.getTableId(tableAlias));
+	    }
+	    
+	    currentRelation = new Relation(mainTableTuples, tupleDesc);
+
 	    // JOIN in the query 
 	    List<Join> joins = sb.getJoins();
 	    if (joins != null) {
@@ -58,6 +73,19 @@ public class Query {
 	        	HeapFile joinHeapFile = c.getDbFile(c.getTableId(joinTableName));
 	        	TupleDesc joinTupleDesc = c.getTupleDesc(c.getTableId(joinTableName));
 	        	// Extract join condition (assuming it's an EqualsTo expression for simplicity)
+	        	
+	        	// AS in JOIN
+	        	 if(joinTable.getAlias() != null) {
+	                 String joinTableAlias = joinTable.getAlias().getName();
+
+	                 // Add the table with the alias
+	                 c.addTable(joinHeapFile, joinTableAlias, c.getPrimaryKey(c.getTableId(joinTableName)));
+
+	                 // Fetch the table using its alias
+	                 joinHeapFile = c.getDbFile(c.getTableId(joinTableAlias));
+	                 joinTupleDesc = c.getTupleDesc(c.getTableId(joinTableAlias));
+	             }
+	        	 
 	        	EqualsTo onExpression = (EqualsTo) join.getOnExpression();
 	        	Column leftColumn = (Column) onExpression.getLeftExpression();
 	        	Column rightColumn = (Column) onExpression.getRightExpression();
@@ -87,8 +115,9 @@ public class Query {
 	    // SELECT clause
 	    List<SelectItem> selectItems = sb.getSelectItems();
 	    ArrayList<Integer> fieldsToProject = new ArrayList<>();
-        ColumnVisitor colVisitor = new ColumnVisitor();
-	    
+	    ColumnVisitor colVisitor = new ColumnVisitor();
+	    ArrayList<Integer> fieldsToRename = new ArrayList<>();
+	    ArrayList<String> newNames = new ArrayList<>();
 	    for (SelectItem si : selectItems) {
 	        si.accept(colVisitor);
 	        
@@ -99,50 +128,36 @@ public class Query {
                 }
                 break;
             }
+	        
+	        // AS in SELECT
+	        String selectItemString = si.toString();
+	        if (selectItemString.contains(" AS ")) {
+	            // The select item has an alias
+	            String[] parts = selectItemString.split(" AS ", 2);
+	            String alias = parts[1].trim();  // Get the part after "AS"
+	            int fieldIndex = currentRelation.getDesc().nameToId(parts[0].trim());
+	            fieldsToRename.add(fieldIndex);
+	            newNames.add(alias);
+	        }
+	        
+	       
 	        int fieldNum = currentRelation.getDesc().nameToId(colName);
 	        if(!fieldsToProject.contains(fieldNum)) fieldsToProject.add(fieldNum);
+	        	       
 	    }
 	    
-        currentRelation = currentRelation.project(fieldsToProject);
-
+	    if (!fieldsToRename.isEmpty()) {
+	        currentRelation = currentRelation.rename(fieldsToRename, newNames);
+	    }
+	    
+	    currentRelation = currentRelation.project(fieldsToProject);
 	    
 	    // Aggregate
 	    boolean hasGroupBy = (sb.getGroupByColumnReferences() != null);
 	    if (colVisitor.isAggregate()) {
 	    	currentRelation = currentRelation.aggregate(colVisitor.getOp(), hasGroupBy);
 	    }
-	    
-	    // GROUP BY
-//	    List<Expression> groupByColumns = sb.getGroupByColumnReferences();
-//	    // Determine the GROUP BY fields
-//	    ArrayList<Integer> groupByFields = new ArrayList<>();
-//
-//	    if (groupByColumns != null) {
-//	        // Explicit GROUP BY
-//	        for (Expression column : groupByColumns) {
-//	            groupByFields.add(currentRelation.getDesc().nameToId(column.toString()));
-//	        }
-//	    } else if (!aggregateFields.isEmpty() && !nonAggregateFields.isEmpty()) {
-//	        // Implicit GROUP BY based on non-aggregate fields
-//	        groupByFields = nonAggregateFields; 
-//	    }
-//
-//	    // Apply GROUP BY
-//	    if (!groupByFields.isEmpty()) {
-//	        currentRelation = currentRelation.groupBy(groupByFields);
-//	    }
-//
-//	    // Apply aggregate operations
-//	    if (!aggregateOps.isEmpty()) {
-//	        for (AggregateOperator op : aggregateOps) {
-//	            currentRelation = currentRelation.aggregate(op, true); 
-//	        }
-//	    } else {
-//	        // If no aggregate functions, just project
-//	        currentRelation = currentRelation.project(fieldsToProject);
-//	    }
 
-		
 		return currentRelation;
 		
 	}
